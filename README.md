@@ -38,10 +38,25 @@ You can also run `stck /path/to/file.stck` if you have a `.stck` file you
 want to run.
 
 If you're using `stck` without any arguments, you will be redirect to the
-interpreted. You can toy around with the language from now on!
+interpreter. You can toy around with the language from now on! See [CLI](#cli).
 
 I'd recommend you to take a look at the available commands, especially the
 `stck` command as it may help you understand a bit more how it works.
+
+### CLI
+
+The command line interface is quite easy to use and looks like Python's. In
+here, you can type instructions and it will be added to the stack. The
+prompt either shows you `>` or `―`. The first one tells that your stack
+is currently empty while the latter signifies your stack isn't.
+
+If you want to take a look at your stack, you can type anytime the command
+`stck` as it takes no argument. This command prints the stacks, from the bottom
+(where your oldest keywords are) to the top (where the new keywords are).
+
+I recommend playing around with the CLI if you're interested in understanding
+a bit more how it works, it's a more interactive way of learning the basics
+of stck!
 
 ## Available commands
 
@@ -50,20 +65,22 @@ Here is an exhaustive list of currently available commands
 | Command | Description                                                       |
 | ------- | ----------------------------------------------------------------- |
 | `stck`  | Prints the current stack to `stdout`                              |
-| `.`     | Concatenates the last two elements of the stack                   |
-| `..`    | Concatenates the last three elements of the stack                 |
-| `:`     | Concatenates every elements of the stack                          |
+| `.`     | Concatenates the last two keywords of the stack                   |
+| `..`    | Concatenates the last three keywords of the stack                 |
+| `:`     | Concatenates every keywords of the stack                          |
 | `print` | Prints to `stdout` the last element of the stack                  |
 | `=`     | WIP, variable affectation                                         |
 
-If you want to add an element to the stack that's a command without it running,
-you can escape the command by using `\`. For instance, `\print`.
+If you want to add an element to the stack that is a command without running
+it, you can escape the command by using `\`. For instance, `\print`.
 
 ## Why though?
 
 For fun, and it was partially inspired by the [reverse Polish
 notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation) that got
 me wondered how that would transcribe in a programming language.
+
+Also wanted to do a bit of C.
 
 ## License
 

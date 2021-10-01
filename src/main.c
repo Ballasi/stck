@@ -12,41 +12,45 @@ int isStopWord(char c) { return c == ' ' || c == '\n' || c == 0; }
 
 void processBuffer(Stack **buffer) {
   Value action_value;
-  Stack_headValue(buffer, &action_value);
+  Stack_get(buffer, &action_value, 0);
   char *action = (char *)action_value.val;
   if (action[0] == '\\') {
-    (*buffer)->val = (void *)((char *)(*buffer)->val + 1);
-    --(*buffer)->val_size;
+    // escaping \ commands
+    return;
   } else if (Stack_size(buffer) >= 3 && action[0] == '=' && action[1] == 0) {
-    Stack_pop(buffer);
-    /* char *value = (char *)*/ Stack_pop(buffer);
-    /* char *name  = (char *)*/ Stack_pop(buffer);
+    free(Stack_pop(buffer));
+    /* char *value = (char *) */ free(Stack_pop(buffer));
+    /* char *name  = (char *) */ free(Stack_pop(buffer));
   } else if (Stack_size(buffer) >= 2 && !strcmp(action, "print")) {
-    Stack_pop(buffer);
+    free(Stack_pop(buffer));
     char *value = (char *)Stack_pop(buffer);
-    printf("%s\n", value);
+    char *ptr = value;
+    if (ptr[0] == '\\')
+      ++ptr;
+    printf("%s\n", ptr);
+    free(value);
   } else if (!strcmp(action, "stck")) {
-    Stack_pop(buffer);
+    free(Stack_pop(buffer));
     printf("[");
     Stack_printString(buffer, 0);
     printf("]\n");
   } else {
     if (action[0] == ':' && action[1] == 0) {
-      Stack_pop(buffer);
+      free(Stack_pop(buffer));
       int size = Stack_size(buffer);
       char temp[size];
       for (int i = 0; i < size - 1; ++i)
         temp[i] = '.';
       temp[size - 1] = 0;
       Stack_push(buffer, temp, size);
-      Stack_headValue(buffer, &action_value);
+      Stack_get(buffer, &action_value, 0);
       action = (char *)action_value.val;
     }
     int i = 0;
     while (action[i++] == '.')
       if (!action[i]) {
         if (Stack_size(buffer) >= i + 2) {
-          Stack_pop(buffer);
+          free(Stack_pop(buffer));
           int str_len = 0;
           Stack *contents;
           Stack_leaf(&contents);
@@ -54,17 +58,23 @@ void processBuffer(Stack **buffer) {
             char *str = (char *)Stack_pop(buffer);
             int len = strlen(str);
             str_len += len + 1;
-            Stack_push(&contents, str, len + 1);
+            char *ptr = str;
+            if (ptr[0] == '\\') {
+              ++ptr;
+              --str_len;
+            }
+            Stack_push(&contents, ptr, len + 1);
+            free(str);
           }
           char new[str_len];
           int ptr = 0;
           while (!Stack_isEmpty(&contents)) {
             Value str;
-            Stack_headValue(&contents, &str);
+            Stack_get(&contents, &str, 0);
             memcpy(new + ptr, (char *)str.val, str.size - 1);
             ptr += str.size;
             new[ptr - 1] = ' ';
-            Stack_pop(&contents);
+            free(Stack_pop(&contents));
           }
           new[str_len - 1] = 0;
           Stack_push(buffer, new, str_len);
@@ -93,6 +103,7 @@ void processContent(Stack **buffer, char *raw) {
       Stack_push(buffer, str, size + 1);
       start = ptr + 1;
       processBuffer(buffer);
+      free(str);
     }
     ptr++;
   } while (*ptr != 0);
@@ -130,6 +141,9 @@ int main(int argc, char **argv) {
       fclose(file);
       if (!Stack_isEmpty(&buffer)) {
         log_warn("stack isn't empty at the end of execution");
+        while (!Stack_isEmpty(&buffer)) {
+          free(Stack_pop(&buffer));
+        }
       }
     } else {
       log_error("file %s does not exist", argv[1]);

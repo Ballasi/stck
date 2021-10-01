@@ -36,14 +36,23 @@ void *Stack_pop(Stack **list) {
     log_error("cannot pop an empty stack");
     return 0;
   }
+
   void *value = (*list)->val;
-  *list = (*list)->next;
+  void *next = (*list)->next;
+  free(*list);
+  *list = next;
   return value;
 }
 
-void Stack_headValue(Stack **list, Value *value) {
+int Stack_get(Stack **list, Value *value, unsigned int i) {
+  if (i) {
+    if (Stack_isEmpty(list))
+      return -1;
+    return Stack_get(&(*list)->next, value, i - 1);
+  }
   value->val = (char *)(*list)->val;
   value->size = (*list)->val_size;
+  return 0;
 }
 
 void Stack_printString(Stack **list, int comma) {
@@ -51,7 +60,10 @@ void Stack_printString(Stack **list, int comma) {
 
   if (!Stack_isEmpty(list)) {
     Stack_printString(&node->next, 1);
-    printf("%s", (char *)node->val);
+    char *ptr = (char *)node->val;
+    if (ptr[0] == '\\')
+      ++ptr;
+    printf("%s", ptr);
     if (comma)
       printf(", ");
   }

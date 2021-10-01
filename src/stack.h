@@ -27,7 +27,7 @@ void *Stack_pop(Stack **list);
 
 int Stack_isEmpty(Stack **list);
 int Stack_size(Stack **list);
-void Stack_headValue(Stack **list, Value *value);
+int Stack_get(Stack **list, Value *value, unsigned int i);
 void Stack_printString(Stack **list, int comma);
 
 #endif // __STACK_H
