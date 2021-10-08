@@ -30,4 +30,6 @@ int Stack_size(Stack **list);
 int Stack_get(Stack **list, Value *value, unsigned int i);
 void Stack_printString(Stack **list, int comma);
 
+int Stack_empty(Stack **list);
+
 #endif // __STACK_H

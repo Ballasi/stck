@@ -12,7 +12,7 @@ Everytime you write a keyword, it will push to the stack. Keywords are
 seperated by common separators such as spaces, backspaces, ...
 
 For instance, with the example above, the first keyword is "Hello", the
-second one is "world!", the third one is "." and the last one is "print".
+second one is "world!", the third one is ":" and the last one is "print".
 
 You can also use spaces in keywords by using quotation marks, for instance,
 the following code reproduces the same result as the example given.
@@ -37,7 +37,7 @@ be most probably useless. I can do a Windows version if people are interested.
 You can also run `stck /path/to/file.stck` if you have a `.stck` file you
 want to run.
 
-If you're using `stck` without any arguments, you will be redirect to the
+If you're using `stck` without any arguments, you will be redirected to the
 interpreter. You can toy around with the language from now on! See [CLI](#cli).
 
 I'd recommend you to take a look at the available commands, especially the

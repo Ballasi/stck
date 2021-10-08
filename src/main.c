@@ -14,6 +14,7 @@ void processBuffer(Stack **buffer) {
   Value action_value;
   Stack_get(buffer, &action_value, 0);
   char *action = (char *)action_value.val;
+  int size = Stack_size(buffer);
   if (action[0] == '\\') {
     // escaping \ commands
     return;
@@ -34,23 +35,24 @@ void processBuffer(Stack **buffer) {
     printf("[");
     Stack_printString(buffer, 0);
     printf("]\n");
-  } else {
+  } else if (size > 2) {
     if (action[0] == ':' && action[1] == 0) {
       free(Stack_pop(buffer));
-      int size = Stack_size(buffer);
-      char temp[size];
+      char temp[--size];
       for (int i = 0; i < size - 1; ++i)
         temp[i] = '.';
       temp[size - 1] = 0;
       Stack_push(buffer, temp, size);
       Stack_get(buffer, &action_value, 0);
       action = (char *)action_value.val;
+      ++size;
     }
     int i = 0;
     while (action[i++] == '.')
       if (!action[i]) {
-        if (Stack_size(buffer) >= i + 2) {
+        if (size >= i + 2) {
           free(Stack_pop(buffer));
+          --size;
           int str_len = 0;
           Stack *contents;
           Stack_leaf(&contents);
@@ -75,9 +77,11 @@ void processBuffer(Stack **buffer) {
             ptr += str.size;
             new[ptr - 1] = ' ';
             free(Stack_pop(&contents));
+            --size;
           }
           new[str_len - 1] = 0;
           Stack_push(buffer, new, str_len);
+          ++size;
         }
         break;
       }
@@ -97,7 +101,14 @@ void processContent(Stack **buffer, char *raw) {
         start++;
         end--;
       }
+
       long size = end - start + 1;
+      // avoid adding to stack an empty element
+      if (size == 0) {
+        ptr++;
+        continue;
+      }
+
       char *str = (char *)calloc(size + 1, sizeof(char));
       memcpy(str, start, size);
       Stack_push(buffer, str, size + 1);
@@ -124,6 +135,10 @@ int main(int argc, char **argv) {
       else
         printf(" > ");
     }
+    printf("\n");
+
+    if (Stack_empty(&buffer))
+      log_warn("stack isn't empty at the end of execution");
   } else {
     FILE *file;
     size_t nread;
@@ -139,12 +154,9 @@ int main(int argc, char **argv) {
       }
 
       fclose(file);
-      if (!Stack_isEmpty(&buffer)) {
+
+      if (Stack_empty(&buffer))
         log_warn("stack isn't empty at the end of execution");
-        while (!Stack_isEmpty(&buffer)) {
-          free(Stack_pop(&buffer));
-        }
-      }
     } else {
       log_error("file %s does not exist", argv[1]);
       return EXIT_FAILURE;

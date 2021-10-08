@@ -68,3 +68,13 @@ void Stack_printString(Stack **list, int comma) {
       printf(", ");
   }
 }
+
+int Stack_empty(Stack **list) {
+  if (Stack_isEmpty(list))
+    return 0;
+
+  while (!Stack_isEmpty(list))
+    free(Stack_pop(list));
+
+  return 1;
+}
