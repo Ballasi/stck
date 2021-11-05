@@ -69,7 +69,7 @@ Here is an exhaustive list of currently available commands
 | `..`    | Concatenates the last three keywords of the stack                 |
 | `:`     | Concatenates every keywords of the stack                          |
 | `print` | Prints to `stdout` the last element of the stack                  |
-| `=`     | WIP, variable affectation                                         |
+| `=`     | Variable affectation                                              |
 
 If you want to add an element to the stack that is a command without running
 it, you can escape the command by using `\`. For instance, `\print`.

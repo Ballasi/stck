@@ -7,8 +7,19 @@
 #include "log.h"
 #include "stack.h"
 #include "utils.h"
+#include "variable.h"
 
-int isStopWord(char c) { return c == ' ' || c == '\n' || c == 0; }
+char *stopWords = " \n";
+
+int isStopWord(char c) {
+  char *ptr = stopWords;
+
+  while (*ptr)
+    if (*ptr++ == c)
+      return 1;
+
+  return c == 0;
+}
 
 void processBuffer(Stack **buffer) {
   Value action_value;
@@ -18,10 +29,15 @@ void processBuffer(Stack **buffer) {
   if (action[0] == '\\') {
     // escaping \ commands
     return;
+  } else if (action[0] == '~') {
+    char *value = Variable_get(action + 1);
+    free(Stack_pop(buffer));
+    Stack_push(buffer, value, strlen(value) + 1);
   } else if (Stack_size(buffer) >= 3 && action[0] == '=' && action[1] == 0) {
     free(Stack_pop(buffer));
-    /* char *value = (char *) */ free(Stack_pop(buffer));
-    /* char *name  = (char *) */ free(Stack_pop(buffer));
+    char *value = (char *) Stack_pop(buffer);
+    char *name  = (char *) Stack_pop(buffer);
+    Variable_put(name, value);
   } else if (Stack_size(buffer) >= 2 && !strcmp(action, "print")) {
     free(Stack_pop(buffer));
     char *value = (char *)Stack_pop(buffer);
@@ -137,6 +153,8 @@ int main(int argc, char **argv) {
     }
     printf("\n");
 
+    Variable_empty();
+
     if (Stack_empty(&buffer))
       log_warn("stack isn't empty at the end of execution");
   } else {
@@ -154,6 +172,7 @@ int main(int argc, char **argv) {
       }
 
       fclose(file);
+      Variable_empty();
 
       if (Stack_empty(&buffer))
         log_warn("stack isn't empty at the end of execution");
