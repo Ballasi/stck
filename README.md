@@ -40,15 +40,20 @@ want to run.
 If you're using `stck` without any arguments, you will be redirected to the
 interpreter. You can toy around with the language from now on! See [CLI](#cli).
 
-I'd recommend you to take a look at the available commands, especially the
-`stck` command as it may help you understand a bit more how it works.
+I would recommend you to take a look at the available commands, especially
+the `stck` command as it may help you understand a bit more how it works.
+
+It is also strongly recommended to check out [the examples](examples) to
+get a grasp of how `stck` works. You can run examples using the command
+`make examples/<name>.stck`.
 
 ### CLI
 
 The command line interface is quite easy to use and looks like Python's. In
 here, you can type instructions and it will be added to the stack. The
 prompt either shows you `>` or `―`. The first one tells that your stack
-is currently empty while the latter signifies your stack isn't.
+is currently empty while the latter signifies your stack isn't. It can also
+show you `┄` if you're currently in a comment.
 
 If you want to take a look at your stack, you can type anytime the command
 `stck` as it takes no argument. This command prints the stacks, from the bottom
@@ -70,9 +75,15 @@ Here is an exhaustive list of currently available commands
 | `:`     | Concatenates every keywords of the stack                          |
 | `print` | Prints to `stdout` the last element of the stack                  |
 | `=`     | Variable affectation                                              |
+| `~var`  | Push the value of the variable `var` to the stack                 |
+| `/* */` | Comments                                                          |
+| `\n`    | Prints a new line character                                       |
 
 If you want to add an element to the stack that is a command without running
 it, you can escape the command by using `\`. For instance, `\print`.
+
+If a command cannot be launched, it will just push the content as is to
+the stack (i.e. the command itself, not its result).
 
 ## Why though?
 

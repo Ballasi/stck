@@ -1,1 +1,24 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* A simple hello world. */
 Hello world! : print
+
+/*
+ * Here, there are four keywords seperated by spaces, the keywords are "Hello",
+ * "world!", ":" and "print".
+ *
+ * The first two keywords, "Hello" and "world!" does not correspond to any
+ * command, therefore, they are pushed to the stack.
+ *
+ * However, when ":" is being processed, it will have an effect on the stack
+ * and alter it. Its utility is to concatenate every keywords on the stack
+ * (see examples/concat.stck for more examples). Therefore, it won't be pushed
+ * to the stack, but it will change the stack from ["Hello", "world!"] to
+ * ["Hello world!"].
+ *
+ * The print command is quite explicit, it will print the element on the
+ * top of the stack (the newest element).
+ * ["The", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog."]
+ * <-- the bottom of the stack                     the top of the stack -->
+ * In this case, using the print command will just print the keyword "dog.".
+ */

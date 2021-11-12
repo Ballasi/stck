@@ -1,2 +1,9 @@
-message Hello world! . =
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+/*
+ * Variables can be defined with following command
+ * > ... value name =
+ * And you can retrieve the value with ~name.
+ */
+Hello world! : message =
 ~message print

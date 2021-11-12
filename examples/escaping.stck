@@ -1,1 +1,4 @@
-I want to \print : print
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* Starting a keyword with \ escapes the command and does not launch it */
+The keyword \print will not be printed. : print

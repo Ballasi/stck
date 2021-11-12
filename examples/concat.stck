@@ -1,3 +1,21 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+/* . and : are used to concatenate values */
 Hello world! . print
-You can put multiple dots! .... print
-And for long sentences, you can also use the keyword ":"! : print
+
+/*
+ * You can chain multiple dots to concatenate more values. For instance,
+ * in here, you have three keywords you want to concatenate, so you put
+ * two dots (the first one will concatenate "=" and "~theAnswerToLife"
+ * and the second one will concatenate "var" and "= 42"
+ */
+
+42 theAnswerToLife =
+Forty-two = ~theAnswerToLife .. print
+
+/*
+ * If you don't know how much elements you want to push and just want to
+ * push the whole stack, you can use the keyword :
+ */
+The greatest glory in living lies not in never falling, but in rising every
+time we fall. -Nelson Mandela : print

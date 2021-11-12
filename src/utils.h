@@ -3,7 +3,7 @@
 #ifndef __UTILS_H
 #define __UTILS_H
 
-#define BUFFERSIZE 128
+#define BUFFERSIZE 256
 #define VERSION "0.1.indev"
 
 #endif // __UTILS_H

@@ -1,2 +1,4 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
 Launching this program won't do anything much except having a non-empty
 stack at the end of the execution.

@@ -1,1 +1,9 @@
-val1 1 = val2 2 = val3 3 = ~val1 ~val2 ~val3 : print
+/* SPDX-License-Identifier: GPL-3.0-or-later */
+
+/*
+ * This is just to showcase the fact that there is no sense of formatting
+ * whatsoever in stck, no need for tabs or ;
+ * Format as you wish! Do what you're most comfortable with!
+ */
+
+/* definition */ This i1 = is i2 = a i3 = one i4 = liner. i5 = /* usage */ ~i1 ~i2 ~i3 ~i4 ~i5 : print

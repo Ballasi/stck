@@ -50,6 +50,7 @@ int Stack_get(Stack **list, Value *value, unsigned int i) {
       return -1;
     return Stack_get(&(*list)->next, value, i - 1);
   }
+
   value->val = (char *)(*list)->val;
   value->size = (*list)->val_size;
   return 0;

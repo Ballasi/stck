@@ -10,6 +10,8 @@
 #include "variable.h"
 
 char *stopWords = " \n";
+int inComment = 0;
+int isInQuote = 0;
 
 int isStopWord(char c) {
   char *ptr = stopWords;
@@ -26,19 +28,76 @@ void processBuffer(Stack **buffer) {
   Stack_get(buffer, &action_value, 0);
   char *action = (char *)action_value.val;
   int size = Stack_size(buffer);
-  if (action[0] == '\\') {
+  if (!isInQuote && action[0] == '"') {
+    if ((action_value.size > 2 && action[action_value.size - 2] != '"') ||
+        action_value.size == 2)
+      isInQuote = 1;
+    else {
+      int new_size = action_value.size - 2;
+      char new_keyword[new_size];
+      memcpy(new_keyword, action + 1, new_size - 1);
+      new_keyword[new_size - 1] = 0;
+      free(Stack_pop(buffer));
+      Stack_push(buffer, new_keyword, new_size);
+    }
+  } else if (isInQuote) {
+    ++isInQuote;
+    if (action_value.size > 1 && action[action_value.size - 2] == '"') {
+      Stack *contents;
+      Stack_leaf(&contents);
+      int str_len = 0;
+      while (isInQuote--) {
+        Value str;
+        Stack_get(buffer, &str, 0);
+        char *ptr = (char *)str.val;
+        int len = str.size - 1;
+
+        // removing first "
+        if (isInQuote == 0) {
+          ++ptr;
+          --len;
+        }
+        // removing last "
+        if (str_len == 0)
+          --len;
+
+        str_len += len + 1;
+        Stack_push(&contents, ptr, len + 1);
+        free(Stack_pop(buffer));
+      }
+      ++isInQuote;
+      char new[str_len];
+      int ptr = 0;
+      while (!Stack_isEmpty(&contents)) {
+        Value str;
+        Stack_get(&contents, &str, 0);
+        memcpy(new + ptr, (char *)str.val, str.size - 1);
+        ptr += str.size;
+        new[ptr - 1] = ' ';
+        free(Stack_pop(&contents));
+        --size;
+      }
+      new[str_len - 1] = 0;
+      Stack_push(buffer, new, str_len);
+      ++size;
+    }
+  } else if (!strcmp(action, "\\n")) {
+    printf("\n");
+    free(Stack_pop(buffer));
+  } else if (action[0] == '\\') {
     // escaping \ commands
-    return;
   } else if (action[0] == '~') {
-    char *value = Variable_get(action + 1);
+    char *value;
+    if ((value = Variable_get(action + 1))) {
+      free(Stack_pop(buffer));
+      Stack_push(buffer, value, strlen(value) + 1);
+    }
+  } else if (size >= 3 && action[0] == '=' && action[1] == 0) {
     free(Stack_pop(buffer));
-    Stack_push(buffer, value, strlen(value) + 1);
-  } else if (Stack_size(buffer) >= 3 && action[0] == '=' && action[1] == 0) {
-    free(Stack_pop(buffer));
-    char *value = (char *) Stack_pop(buffer);
-    char *name  = (char *) Stack_pop(buffer);
+    char *name = (char *)Stack_pop(buffer);
+    char *value = (char *)Stack_pop(buffer);
     Variable_put(name, value);
-  } else if (Stack_size(buffer) >= 2 && !strcmp(action, "print")) {
+  } else if (size >= 2 && !strcmp(action, "print")) {
     free(Stack_pop(buffer));
     char *value = (char *)Stack_pop(buffer);
     char *ptr = value;
@@ -73,16 +132,17 @@ void processBuffer(Stack **buffer) {
           Stack *contents;
           Stack_leaf(&contents);
           for (int j = 0; j < i + 1; ++j) {
-            char *str = (char *)Stack_pop(buffer);
-            int len = strlen(str);
-            str_len += len + 1;
-            char *ptr = str;
+            Value str;
+            Stack_get(buffer, &str, 0);
+            char *ptr = (char *)str.val;
+            int len = str.size - 1;
             if (ptr[0] == '\\') {
               ++ptr;
-              --str_len;
+              --len;
             }
+            str_len += len + 1;
             Stack_push(&contents, ptr, len + 1);
-            free(str);
+            free(Stack_pop(buffer));
           }
           char new[str_len];
           int ptr = 0;
@@ -104,36 +164,15 @@ void processBuffer(Stack **buffer) {
   }
 }
 
-void processContent(Stack **buffer, char *raw) {
-  char *start = raw;
-  char *ptr = raw;
-  int insideBrackets = 0;
-  do {
-    if (*ptr == '"')
-      insideBrackets = 1 - insideBrackets;
-    if (isStopWord(*ptr) && ptr > start && !insideBrackets) {
-      char *end = ptr - 1;
-      if (*start == '"' && *end == '"') {
-        start++;
-        end--;
-      }
-
-      long size = end - start + 1;
-      // avoid adding to stack an empty element
-      if (size == 0) {
-        ptr++;
-        continue;
-      }
-
-      char *str = (char *)calloc(size + 1, sizeof(char));
-      memcpy(str, start, size);
-      Stack_push(buffer, str, size + 1);
-      start = ptr + 1;
-      processBuffer(buffer);
-      free(str);
-    }
-    ptr++;
-  } while (*ptr != 0);
+void processToken(Stack **buffer, char *str, int len) {
+  if (!strcmp(str, "/*"))
+    inComment = 1;
+  if (inComment && !strcmp(str, "*/"))
+    inComment = 0;
+  else if (!inComment) {
+    Stack_push(buffer, str, len + 1);
+    processBuffer(buffer);
+  }
 }
 
 int main(int argc, char **argv) {
@@ -144,27 +183,38 @@ int main(int argc, char **argv) {
   if (argc == 1) {
     printf("stck v%s\n", VERSION);
     printf(" > ");
-    while (fgets(buf, BUFFERSIZE, stdin)) {
-      processContent(&buffer, buf);
-      if (!Stack_isEmpty(&buffer))
-        printf(" ― ");
-      else
-        printf(" > ");
-    }
-    printf("\n");
 
+    while (fgets(buf, BUFFERSIZE, stdin)) {
+      char *token = strtok(buf, stopWords);
+      while (token != NULL) {
+        processToken(&buffer, token, strlen(token));
+        token = strtok(NULL, stopWords);
+      }
+
+      if (inComment)
+        printf(" ┈ ");
+      else if (Stack_isEmpty(&buffer))
+        printf(" > ");
+      else
+        printf(" ― ");
+    }
+
+    printf("\n");
     Variable_empty();
 
     if (Stack_empty(&buffer))
       log_warn("stack isn't empty at the end of execution");
   } else {
     FILE *file;
-    size_t nread;
 
     file = fopen(argv[1], "r");
     if (file) {
-      while ((nread = fread(buf, 1, sizeof buf, file)) > 0)
-        processContent(&buffer, buf);
+      while (fscanf(file, "%[^ \n]", buf) != EOF) {
+        if (buf[0] != 0)
+          processToken(&buffer, buf, strlen(buf));
+
+        fscanf(file, "%[ \n]", buf);
+      }
 
       if (ferror(file)) {
         log_error("opening file %s", argv[1]);
@@ -173,7 +223,6 @@ int main(int argc, char **argv) {
 
       fclose(file);
       Variable_empty();
-
       if (Stack_empty(&buffer))
         log_warn("stack isn't empty at the end of execution");
     } else {
