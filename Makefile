@@ -44,6 +44,3 @@ $(BIN):
 clean:
 	@printf "\033[1mCleaning files\033[0m\n"
 	@rm -Rf $(BIN) $(OBJ)
-
-test: $(BIN)/$(NAME)
-	@bash test.sh

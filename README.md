@@ -1,4 +1,8 @@
-# stck
+```
+ __|‾|_ __|‾|__
+(_-<  _/ _| / /
+/__/\__\__|_\_\
+```
 
 An esoteric programming language based around stacks
 
@@ -56,7 +60,7 @@ is currently empty while the latter signifies your stack isn't. It can also
 show you `┄` if you're currently in a comment.
 
 If you want to take a look at your stack, you can type anytime the command
-`stck` as it takes no argument. This command prints the stacks, from the bottom
+`stck` as it takes no argument. This command prints the stack, from the bottom
 (where your oldest keywords are) to the top (where the new keywords are).
 
 I recommend playing around with the CLI if you're interested in understanding
