@@ -175,61 +175,80 @@ void processToken(Stack **buffer, char *str, int len) {
   }
 }
 
-int main(int argc, char **argv) {
+int stck_showprompt() {
   Stack *buffer;
   Stack_leaf(&buffer);
   char buf[BUFFERSIZE];
 
-  if (argc == 1) {
-    printf("stck v%s\n", VERSION);
-    printf(" > ");
+  printf("stck v%s\n", VERSION);
+  printf(" > ");
 
-    while (fgets(buf, BUFFERSIZE, stdin)) {
-      char *token = strtok(buf, stopWords);
-      while (token != NULL) {
-        processToken(&buffer, token, strlen(token));
-        token = strtok(NULL, stopWords);
-      }
-
-      if (inComment)
-        printf(" ┈ ");
-      else if (Stack_isEmpty(&buffer))
-        printf(" > ");
-      else
-        printf(" ― ");
+  while (fgets(buf, BUFFERSIZE, stdin)) {
+    char *token = strtok(buf, stopWords);
+    while (token != NULL) {
+      processToken(&buffer, token, strlen(token));
+      token = strtok(NULL, stopWords);
     }
 
-    printf("\n");
-    Variable_empty();
+    if (inComment)
+      printf(" ┈ ");
+    else if (Stack_isEmpty(&buffer))
+      printf(" > ");
+    else
+      printf(" ― ");
+  }
 
-    if (Stack_empty(&buffer))
-      log_warn("stack isn't empty at the end of execution");
-  } else {
-    FILE *file;
+  printf("\n");
+  Variable_empty();
 
-    file = fopen(argv[1], "r");
-    if (file) {
-      while (fscanf(file, "%[^ \n]", buf) != EOF) {
-        if (buf[0] != 0)
-          processToken(&buffer, buf, strlen(buf));
-
-        fscanf(file, "%[ \n]", buf);
-      }
-
-      if (ferror(file)) {
-        log_error("opening file %s", argv[1]);
-        return EXIT_FAILURE;
-      }
-
-      fclose(file);
-      Variable_empty();
-      if (Stack_empty(&buffer))
-        log_warn("stack isn't empty at the end of execution");
-    } else {
-      log_error("file %s does not exist", argv[1]);
-      return EXIT_FAILURE;
-    }
+  if (Stack_empty(&buffer)) {
+    log_warn("stack isn't empty at the end of execution");
+    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;
+}
+
+int stck_processfile(char **argv) {
+  Stack *buffer;
+  Stack_leaf(&buffer);
+  char buf[BUFFERSIZE];
+
+  FILE *file;
+
+  file = fopen(argv[1], "r");
+  if (file) {
+    while (fscanf(file, "%[^ \n]", buf) != EOF) {
+      if (buf[0] != 0)
+        processToken(&buffer, buf, strlen(buf));
+
+      fscanf(file, "%[ \n]", buf);
+    }
+
+    if (ferror(file)) {
+      log_error("opening file %s", argv[1]);
+      return EXIT_FAILURE;
+    }
+
+    fclose(file);
+    Variable_empty();
+    if (Stack_empty(&buffer))
+      log_warn("stack isn't empty at the end of execution");
+  } else {
+    log_error("file %s does not exist", argv[1]);
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int main(int argc, char **argv) {
+  if (argc == 1) {
+    return stck_showprompt();
+  } else if (!strcmp(argv[1], "-v") || !strcmp(argv[1], "--version")) {
+    printf("stck v%s\n", VERSION);
+    return EXIT_SUCCESS;
+  } else {
+    return stck_processfile(argv);
+  }
 }
