@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "command.h"
 #include "log.h"
 #include "stack.h"
 #include "utils.h"
@@ -81,86 +82,8 @@ void processBuffer(Stack **buffer) {
       Stack_push(buffer, new, str_len);
       ++size;
     }
-  } else if (!strcmp(action, "\\n")) {
-    printf("\n");
-    free(Stack_pop(buffer));
-  } else if (action[0] == '\\') {
-    // escaping \ commands
-  } else if (action[0] == '~') {
-    char *value;
-    if ((value = Variable_get(action + 1))) {
-      free(Stack_pop(buffer));
-      Stack_push(buffer, value, strlen(value) + 1);
-    }
-  } else if (size >= 3 && action[0] == '=' && action[1] == 0) {
-    free(Stack_pop(buffer));
-    char *name = (char *)Stack_pop(buffer);
-    char *value = (char *)Stack_pop(buffer);
-    Variable_put(name, value);
-  } else if (size >= 2 && !strcmp(action, "print")) {
-    free(Stack_pop(buffer));
-    char *value = (char *)Stack_pop(buffer);
-    char *ptr = value;
-    if (ptr[0] == '\\')
-      ++ptr;
-    printf("%s\n", ptr);
-    free(value);
-  } else if (!strcmp(action, "stck")) {
-    free(Stack_pop(buffer));
-    printf("[");
-    Stack_printString(buffer, 0);
-    printf("]\n");
-  } else if (size > 2) {
-    if (action[0] == ':' && action[1] == 0) {
-      free(Stack_pop(buffer));
-      char temp[--size];
-      for (int i = 0; i < size - 1; ++i)
-        temp[i] = '.';
-      temp[size - 1] = 0;
-      Stack_push(buffer, temp, size);
-      Stack_get(buffer, &action_value, 0);
-      action = (char *)action_value.val;
-      ++size;
-    }
-    int i = 0;
-    while (action[i++] == '.')
-      if (!action[i]) {
-        if (size >= i + 2) {
-          free(Stack_pop(buffer));
-          --size;
-          int str_len = 0;
-          Stack *contents;
-          Stack_leaf(&contents);
-          for (int j = 0; j < i + 1; ++j) {
-            Value str;
-            Stack_get(buffer, &str, 0);
-            char *ptr = (char *)str.val;
-            int len = str.size - 1;
-            if (ptr[0] == '\\') {
-              ++ptr;
-              --len;
-            }
-            str_len += len + 1;
-            Stack_push(&contents, ptr, len + 1);
-            free(Stack_pop(buffer));
-          }
-          char new[str_len];
-          int ptr = 0;
-          while (!Stack_isEmpty(&contents)) {
-            Value str;
-            Stack_get(&contents, &str, 0);
-            memcpy(new + ptr, (char *)str.val, str.size - 1);
-            ptr += str.size;
-            new[ptr - 1] = ' ';
-            free(Stack_pop(&contents));
-            --size;
-          }
-          new[str_len - 1] = 0;
-          Stack_push(buffer, new, str_len);
-          ++size;
-        }
-        break;
-      }
+  } else {
+    handleCommands(buffer);
   }
 }
 
