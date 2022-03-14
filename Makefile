@@ -1,17 +1,19 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-ERROR_FLAGS ?= -Wall -pedantic -Wno-deprecated-declarations -Werror
-LINKING_FLAGS ?=
-COMPILE_FLAGS ?=
-EXECUTION_FLAGS ?=
-
 BIN = bin
 OBJ = obj
 SRC = src
 NAME = stck
+SRC_ABS = $(shell pwd)/$(SRC)
 
-SOURCES = $(wildcard $(SRC)/*.c)
-OBJECTS = $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SOURCES))
+ERROR_FLAGS ?= -Wall -pedantic -Wno-deprecated-declarations -Werror
+LINKING_FLAGS ?=
+COMPILE_FLAGS ?= -I$(SRC_ABS)
+EXECUTION_FLAGS ?=
+
+SOURCES = $(shell find $(SRC) -type f | grep \.c$)
+OBJECTS = $(shell find $(SRC) -type f | sed -En 's/^src(.*)\.c/obj\1.o/p')
+OBJ_FOLDERS = $(shell find src -type d | sed 's/^src/obj/')
 
 EXAMPLES = $(wildcard examples/*.stck)
 
@@ -25,7 +27,7 @@ $(EXAMPLES): $(BIN)/$(NAME) /tmp/$(NAME)_lock
 
 /tmp/$(NAME)_lock:
 
-$(BIN)/$(NAME): $(BIN) $(OBJ) $(OBJECTS)
+$(BIN)/$(NAME): $(BIN) $(OBJ_FOLDERS) $(OBJECTS)
 	@printf "\033[1mLinking $(NAME)...\033[0m\n"
 	@gcc $(OBJECTS) -o $(BIN)/$(NAME) $(LINKING_FLAGS) $(ERROR_FLAGS)
 
@@ -33,9 +35,9 @@ $(OBJECTS): $(OBJ)/%.o : $(SRC)/%.c
 	@printf "\033[1mCompiling $<...\033[0m\n"
 	@gcc -c $< -o $@ $(COMPILE_FLAGS) $(ERROR_FLAGS)
 
-$(OBJ):
-	@printf "\033[1mCreating $(OBJ)/ folder\033[0m\n"
-	@mkdir $(OBJ)
+$(OBJ_FOLDERS): $(OBJ)% : $(SRC)%
+	@printf "\033[1mCreating $@ folder\033[0m\n"
+	@mkdir -p $@
 
 $(BIN):
 	@printf "\033[1mCreating $(BIN)/ folder\033[0m\n"
