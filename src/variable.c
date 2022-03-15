@@ -11,22 +11,27 @@ hash Variable_hash(char *s) {
   return h % HASHSIZE;
 }
 
-char *Variable_get(char *key) {
+HashElement *Variable_get_hl(char *key) {
   HashElement *hl;
   hash h = Variable_hash(key);
 
   for (hl = variables[h]; hl != 0; hl = hl->next)
     if (strcmp(key, hl->key) == 0)
-      return hl->value;
+      return hl;
 
   return 0;
+}
+
+char *Variable_get(char *key) {
+  HashElement *hl;
+  return (hl = Variable_get_hl(key)) ? hl->value : 0;
 }
 
 HashElement *Variable_put(char *key, char *value) {
   HashElement *hl = 0;
   hash h;
 
-  if (Variable_get(key) == 0) {
+  if ((hl = Variable_get_hl(key)) == 0) {
     hl = (HashElement *)malloc(sizeof(*hl));
     if (hl == 0 || (hl->key = key) == 0)
       return 0;

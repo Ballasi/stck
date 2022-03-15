@@ -20,6 +20,7 @@ typedef struct HashElement {
 extern HashElement *variables[HASHSIZE];
 
 hash Variable_hash(char *s);
+HashElement *Variable_get_hl(char *key);
 char *Variable_get(char *key);
 HashElement *Variable_put(char *key, char *value);
 void Variable_empty();
