@@ -31,6 +31,14 @@ HashElement *Variable_put(char *key, char *value) {
   HashElement *hl = 0;
   hash h;
 
+  if (key[0] == '\\') {
+    unsigned int n = strlen(key);
+    char *newkey = malloc(sizeof(char) * n);
+    memcpy(newkey, key + 1, n);
+    free(key);
+    key = newkey;
+  }
+
   if ((hl = Variable_get_hl(key)) == 0) {
     hl = (HashElement *)malloc(sizeof(*hl));
     if (hl == 0 || (hl->key = key) == 0)
