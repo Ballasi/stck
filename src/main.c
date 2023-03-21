@@ -14,16 +14,6 @@ char *stopWords = " \n";
 int inComment = 0;
 int isInQuote = 0;
 
-int isStopWord(char c) {
-  char *ptr = stopWords;
-
-  while (*ptr)
-    if (*ptr++ == c)
-      return 1;
-
-  return c == 0;
-}
-
 void processBuffer(Stack **buffer) {
   Value action_value;
   Stack_get(buffer, &action_value, 0);
